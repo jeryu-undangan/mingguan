@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pencatat Uang Kos</title>
+
+  <!-- KONFIGURASI PWA UNTUK IOS / IPHONE -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Uang Kos">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2382/2382533.png">
+
+  <!-- DAFTARKAN SERVICE WORKER -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('PWA Service Worker Berhasil Didaftarkan!'))
+          .catch((err) => console.log('Gagal daftar Service Worker:', err));
+      });
+    }
+  </script>
+
+  <!-- STYLING (CSS) -->
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 16px;
+      color: #333;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    .card-saldo {
+      background: linear-gradient(135deg, #007aff, #0056b3);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .card-saldo h2 {
+      margin: 5px 0 15px 0;
+      font-size: 2rem;
+    }
+    .detail-saldo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .btn-small {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .btn-small:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    .btn-delete {
+      background: #ff3b30;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .card-form {
+      background: white;
+      padding: 16px;
+      border-radius: 16px;
+      margin-top: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 0.9rem;
+    }
+    button.btn-simpan {
+      width: 100%;
+      background-color: #34c759;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    .section-riwayat {
+      margin-top: 20px;
+    }
+    .item-transaksi {
+      background: white;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pesan-kosong {
+      text-align: center;
+      color: #8e8e93;
+      font-size: 0.85rem;
+    }
+    .pemasukan-text {
+      color: #34c759;
+      font-weight: bold;
+    }
+    .pengeluaran-text {
+      color: #ff3b30;
+      font-weight: bold;
+    }
+
+    /* POP-UP MODAL KUSTOM */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.2s ease-in-out;
+      z-index: 1000;
+    }
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-box {
+      background: white;
+      width: 90%;
+      max-width: 350px;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-box h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn-batal {
+      background: #8e8e93;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      width: 50%;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-konfirmasi {
+      background: #007aff;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      width: 50%;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>💰 Pengatur Uang Kos</h1>
+
+    <!-- KARTU SALDO UTAMA -->
+    <div class="card-saldo">
+      <div>
+        <small>Sisa Uang Saku</small>
+        <h2 id="teksSisaUang">Rp 0</h2>
+      </div>
+      <button id="btnTambahSaldo" class="btn-small" style="width: 100%; margin-bottom: 12px;">+ Tambah Saldo Masuk</button>
+      <hr>
+      <div class="detail-saldo">
+        <p>
+          Target Saku: <span id="teksUangSaku">Rp 0</span> 
+          <button id="btnEditSaku" class="btn-small">✏️</button>
+        </p>
+        <p>Total Keluar: <span id="teksTotalKeluar">Rp 0</span></p>
+      </div>
+    </div>
+
+    <!-- FORM CATAT PENGELUARAN -->
+    <div class="card-form">
+      <h3>+ Catat Pengeluaran</h3>
+      
+      <label>Nama Pengeluaran</label>
+      <input type="text" id="inputNama" placeholder="Contoh: Nasi Goreng">
+
+      <label>Nominal (Rp)</label>
+      <input type="number" id="inputNominal" placeholder="Contoh: 15000">
+
+      <label>Kategori</label>
+      <select id="inputKategori">
+        <option value="Makan">🍛 Makan & Minum</option>
+        <option value="Kebutuhan Kos">🏠 Kebutuhan Kos</option>
+        <option value="Transport">🛵 Transportasi</option>
+        <option value="Nongkrong">☕ Nongkrong / Hiburan</option>
+        <option value="Lainnya">📦 Lainnya</option>
+      </select>
+
+      <button id="btnSimpan" class="btn-simpan">Simpan Catatan</button>
+    </div>
+
+    <!-- DAFTAR RIWAYAT -->
+    <div class="section-riwayat">
+      <h3>Riwayat Transaksi</h3>
+      <div id="daftarPengeluaranContainer">
+        <p class="pesan-kosong">Belum ada transaksi dicatat.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POP-UP MODAL KUSTOM -->
+  <div class="modal-overlay" id="modalCustom">
+    <div class="modal-box">
+      <h3 id="modalJudul">Judul Pop-up</h3>
+      
+      <div id="modalFormContainer">
+        <label id="modalLabel1">Keterangan</label>
+        <input type="text" id="modalInput1" placeholder="">
+
+        <div id="wrapperInput2">
+          <label id="modalLabel2">Nominal (Rp)</label>
+          <input type="number" id="modalInput2" placeholder="">
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-batal" id="btnModalBatal">Batal</button>
+        <button class="btn-konfirmasi" id="btnModalSimpan">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    let uangSakuMingguan = Number(localStorage.getItem('targetUangSakuKos')) || 300000;
+    let daftarPengeluaran = JSON.parse(localStorage.getItem('dataPengeluaranKos')) || [];
+    let modalAction = ''; // Untuk menyimpan status aksi modal yang aktif
+
+    const inputNama = document.getElementById('inputNama');
+    const inputNominal = document.getElementById('inputNominal');
+    const inputKategori = document.getElementById('inputKategori');
+    const btnSimpan = document.getElementById('btnSimpan');
+    const btnEditSaku = document.getElementById('btnEditSaku');
+    const btnTambahSaldo = document.getElementById('btnTambahSaldo');
+
+    const teksSisaUang = document.getElementById('teksSisaUang');
+    const teksUangSaku = document.getElementById('teksUangSaku');
+    const teksTotalKeluar = document.getElementById('teksTotalKeluar');
+    const containerRiwayat = document.getElementById('daftarPengeluaranContainer');
+
+    // Element Modal
+    const modalCustom = document.getElementById('modalCustom');
+    const modalJudul = document.getElementById('modalJudul');
+    const modalLabel1 = document.getElementById('modalLabel1');
+    const modalInput1 = document.getElementById('modalInput1');
+    const wrapperInput2 = document.getElementById('wrapperInput2');
+    const modalLabel2 = document.getElementById('modalLabel2');
+    const modalInput2 = document.getElementById('modalInput2');
+    const btnModalBatal = document.getElementById('btnModalBatal');
+    const btnModalSimpan = document.getElementById('btnModalSimpan');
+
+    function perbaruiTampilan() {
+      let totalKeluar = 0;
+      let totalPemasukanTambahan = 0;
+
+      for (let i = 0; i < daftarPengeluaran.length; i++) {
+        if (daftarPengeluaran[i].tipe === 'masuk') {
+          totalPemasukanTambahan += daftarPengeluaran[i].jumlah;
+        } else {
+          totalKeluar += daftarPengeluaran[i].jumlah;
+        }
+      }
+
+      let sisaUang = (uangSakuMingguan + totalPemasukanTambahan) - totalKeluar;
+
+      teksSisaUang.innerText = `Rp ${sisaUang.toLocaleString('id-ID')}`;
+      teksUangSaku.innerText = `Rp ${uangSakuMingguan.toLocaleString('id-ID')}`;
+      teksTotalKeluar.innerText = `Rp ${totalKeluar.toLocaleString('id-ID')}`;
+
+      containerRiwayat.innerHTML = '';
+
+      if (daftarPengeluaran.length === 0) {
+        containerRiwayat.innerHTML = '<p class="pesan-kosong">Belum ada transaksi dicatat.</p>';
+        return;
+      }
+
+      for (let i = daftarPengeluaran.length - 1; i >= 0; i--) {
+        let item = daftarPengeluaran[i];
+        let div = document.createElement('div');
+        div.className = 'item-transaksi';
+        
+        let isMasuk = item.tipe === 'masuk';
+        let tanda = isMasuk ? '+Rp ' : '-Rp ';
+        let kelasWarna = isMasuk ? 'pemasukan-text' : 'pengeluaran-text';
+
+        div.innerHTML = `
+          <div>
+            <strong>${item.nama}</strong><br>
+            <small style="color: #666;">${item.kategori} • ${item.tanggal}</small>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <span class="${kelasWarna}">${tanda}${item.jumlah.toLocaleString('id-ID')}</span>
+            <button class="btn-delete" onclick="hapusTransaksi(${item.id})">🗑️</button>
+          </div>
+        `;
+        containerRiwayat.appendChild(div);
+      }
+    }
+
+    function tambahTransaksi() {
+      let nama = inputNama.value.trim();
+      let nominal = Number(inputNominal.value);
+      let kategori = inputKategori.value;
+
+      if (nama === '' || isNaN(nominal) || nominal <= 0) {
+        alert('Harap isi nama pengeluaran dan nominal dengan benar!');
+        return;
+      }
+
+      let transaksiBaru = {
+        id: Date.now(),
+        tipe: 'keluar',
+        nama: nama,
+        jumlah: nominal,
+        kategori: kategori,
+        tanggal: new Date().toLocaleDateString('id-ID')
+      };
+
+      daftarPengeluaran.push(transaksiBaru);
+      localStorage.setItem('dataPengeluaranKos', JSON.stringify(daftarPengeluaran));
+
+      inputNama.value = '';
+      inputNominal.value = '';
+
+      perbaruiTampilan();
+    }
+
+    function hapusTransaksi(id) {
+      if (confirm('Yakin ingin menghapus catatan ini?')) {
+        daftarPengeluaran = daftarPengeluaran.filter(item => item.id !== id);
+        localStorage.setItem('dataPengeluaranKos', JSON.stringify(daftarPengeluaran));
+        perbaruiTampilan();
+      }
+    }
+
+    // FUNGSI UNTUK MEMBUKA MODAL KUSTOM
+    function bukaModal(action) {
+      modalAction = action;
+      modalInput1.value = '';
+      modalInput2.value = '';
+
+      if (action === 'tambahSaldo') {
+        modalJudul.innerText = 'Tambah Saldo Masuk';
+        modalLabel1.innerText = 'Keterangan Saldo Masuk';
+        modalInput1.placeholder = 'Contoh: Dikasih Orang Tua / Rezeki';
+        modalInput1.type = 'text';
+        wrapperInput2.style.display = 'block';
+        modalLabel2.innerText = 'Nominal (Rp)';
+        modalInput2.placeholder = 'Contoh: 100000';
+      } else if (action === 'editSaku') {
+        modalJudul.innerText = 'Ubah Target Uang Saku';
+        modalLabel1.innerText = 'Nominal Target Uang Saku Baru (Rp)';
+        modalInput1.placeholder = 'Contoh: 300000';
+        modalInput1.type = 'number';
+        modalInput1.value = uangSakuMingguan;
+        wrapperInput2.style.display = 'none';
+      }
+
+      modalCustom.classList.add('active');
+    }
+
+    function tutupModal() {
+      modalCustom.classList.remove('active');
+    }
+
+    // FUNGSI PROSES SIMPAN DARI MODAL
+    function simpanModal() {
+      if (modalAction === 'tambahSaldo') {
+        let ket = modalInput1.value.trim();
+        let nominal = Number(modalInput2.value);
+
+        if (ket === '' || isNaN(nominal) || nominal <= 0) {
+          alert('Harap isi keterangan dan nominal angka dengan benar!');
+          return;
+        }
+
+        let transaksiMasuk = {
+          id: Date.now(),
+          tipe: 'masuk',
+          nama: ket,
+          jumlah: nominal,
+          kategori: '📥 Saldo Masuk',
+          tanggal: new Date().toLocaleDateString('id-ID')
+        };
+
+        daftarPengeluaran.push(transaksiMasuk);
+        localStorage.setItem('dataPengeluaranKos', JSON.stringify(daftarPengeluaran));
+        perbaruiTampilan();
+        tutupModal();
+
+      } else if (modalAction === 'editSaku') {
+        let nominalBaru = Number(modalInput1.value);
+        if (!isNaN(nominalBaru) && nominalBaru >= 0) {
+          uangSakuMingguan = nominalBaru;
+          localStorage.setItem('targetUangSakuKos', nominalBaru);
+          perbaruiTampilan();
+          tutupModal();
+        } else {
+          alert('Nominal harus berupa angka valid!');
+        }
+      }
+    }
+
+    btnSimpan.addEventListener('click', tambahTransaksi);
+    btnTambahSaldo.addEventListener('click', () => bukaModal('tambahSaldo'));
+    btnEditSaku.addEventListener('click', () => bukaModal('editSaku'));
+    btnModalBatal.addEventListener('click', tutupModal);
+    btnModalSimpan.addEventListener('click', simpanModal);
+
+    perbaruiTampilan();
+  </script>
+</body>
+</html>
