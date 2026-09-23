@@ -5,25 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pencatat Uang Kos</title>
 
-  <!-- KONFIGURASI PWA UNTUK IOS / IPHONE -->
+  <!-- KONFIGURASI PWA UNTUK IOS -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Uang Kos">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2382/2382533.png">
 
-  <!-- DAFTARKAN SERVICE WORKER -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('PWA Service Worker Berhasil Didaftarkan!'))
-          .catch((err) => console.log('Gagal daftar Service Worker:', err));
+          .then(() => console.log('Service Worker Aktif!'))
+          .catch((err) => console.log('Service Worker Gagal:', err));
       });
     }
   </script>
 
-  <!-- STYLING (CSS) -->
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -32,172 +30,71 @@
       padding: 16px;
       color: #333;
     }
-    .container {
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.4rem;
-      margin-bottom: 20px;
+    .container { max-width: 400px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 1.4rem; margin-bottom: 20px; }
+    
+    .card-auth, .card-form, .card-saldo {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
     }
     .card-saldo {
       background: linear-gradient(135deg, #007aff, #0056b3);
       color: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .card-saldo h2 {
-      margin: 5px 0 15px 0;
-      font-size: 2rem;
-    }
-    .detail-saldo {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-    }
-    .btn-small {
-      background: rgba(255, 255, 255, 0.25);
-      border: none;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-    .btn-small:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
-    .btn-delete {
-      background: #ff3b30;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      margin-left: 8px;
-    }
-    .card-form {
-      background: white;
-      padding: 16px;
-      border-radius: 16px;
-      margin-top: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: bold;
-      margin-top: 10px;
-      margin-bottom: 4px;
-    }
-    input, select {
+    .card-saldo h2 { margin: 5px 0 15px 0; font-size: 2rem; }
+    .detail-saldo { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+    
+    label { display: block; font-size: 0.8rem; font-weight: bold; margin-top: 10px; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 0.9rem; }
+    
+    .btn-main { width: 100%; background: #007aff; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 12px; cursor: pointer; }
+    
+    /* STYLING TOMBOL LOGIN SOSMED */
+    .btn-google {
       width: 100%;
-      padding: 10px;
+      background: #ffffff;
+      color: #757575;
       border: 1px solid #ddd;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 0.9rem;
-    }
-    button.btn-simpan {
-      width: 100%;
-      background-color: #34c759;
-      color: white;
-      border: none;
-      padding: 12px;
+      padding: 10px;
       border-radius: 8px;
       font-weight: bold;
-      font-size: 1rem;
-      margin-top: 16px;
+      margin-top: 12px;
       cursor: pointer;
-    }
-    .section-riwayat {
-      margin-top: 20px;
-    }
-    .item-transaksi {
-      background: white;
-      padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 8px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
-    .pesan-kosong {
+    .btn-google:hover { background: #f8f9fa; }
+
+    .divider {
       text-align: center;
+      margin: 16px 0;
       color: #8e8e93;
-      font-size: 0.85rem;
-    }
-    .pemasukan-text {
-      color: #34c759;
-      font-weight: bold;
-    }
-    .pengeluaran-text {
-      color: #ff3b30;
-      font-weight: bold;
+      font-size: 0.8rem;
+      position: relative;
     }
 
-    /* POP-UP MODAL KUSTOM */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      visibility: hidden;
-      opacity: 0;
-      transition: all 0.2s ease-in-out;
-      z-index: 1000;
-    }
-    .modal-overlay.active {
-      visibility: visible;
-      opacity: 1;
-    }
-    .modal-box {
-      background: white;
-      width: 90%;
-      max-width: 350px;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .modal-box h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 1.1rem;
-    }
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .btn-batal {
-      background: #8e8e93;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-      width: 50%;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .btn-konfirmasi {
-      background: #007aff;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-      width: 50%;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .btn-simpan { background-color: #34c759; }
+    .btn-small { background: rgba(255, 255, 255, 0.25); border: none; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+    .btn-delete { background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; margin-left: 8px; }
+
+    .item-transaksi { background: white; padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .pemasukan-text { color: #34c759; font-weight: bold; }
+    .pengeluaran-text { color: #ff3b30; font-weight: bold; }
+    .pesan-kosong { text-align: center; color: #8e8e93; font-size: 0.85rem; }
+
+    .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .toggle-auth { text-align: center; font-size: 0.85rem; margin-top: 10px; color: #007aff; cursor: pointer; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; visibility: hidden; opacity: 0; transition: all 0.2s; z-index: 1000; }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal-box { background: white; width: 90%; max-width: 350px; padding: 20px; border-radius: 16px; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 16px; }
   </style>
 </head>
 <body>
@@ -205,50 +102,76 @@
   <div class="container">
     <h1>💰 Pengatur Uang Kos</h1>
 
-    <!-- KARTU SALDO UTAMA -->
-    <div class="card-saldo">
-      <div>
-        <small>Sisa Uang Saku</small>
-        <h2 id="teksSisaUang">Rp 0</h2>
-      </div>
-      <button id="btnTambahSaldo" class="btn-small" style="width: 100%; margin-bottom: 12px;">+ Tambah Saldo Masuk</button>
-      <hr>
-      <div class="detail-saldo">
-        <p>
-          Target Saku: <span id="teksUangSaku">Rp 0</span> 
-          <button id="btnEditSaku" class="btn-small">✏️</button>
-        </p>
-        <p>Total Keluar: <span id="teksTotalKeluar">Rp 0</span></p>
-      </div>
-    </div>
-
-    <!-- FORM CATAT PENGELUARAN -->
-    <div class="card-form">
-      <h3>+ Catat Pengeluaran</h3>
+    <!-- LAYAR AUTHENTICATION (LOGIN / REGISTER) -->
+    <div id="secAuth" class="card-auth">
+      <h3 id="authTitle">Login Pengguna</h3>
       
-      <label>Nama Pengeluaran</label>
-      <input type="text" id="inputNama" placeholder="Contoh: Nasi Goreng">
+      <!-- TOMBOL GOOGLE LOGIN -->
+      <button id="btnGoogleLogin" class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google">
+        Masuk dengan Google
+      </button>
 
-      <label>Nominal (Rp)</label>
-      <input type="number" id="inputNominal" placeholder="Contoh: 15000">
+      <div class="divider">atau pakai email</div>
 
-      <label>Kategori</label>
-      <select id="inputKategori">
-        <option value="Makan">🍛 Makan & Minum</option>
-        <option value="Kebutuhan Kos">🏠 Kebutuhan Kos</option>
-        <option value="Transport">🛵 Transportasi</option>
-        <option value="Nongkrong">☕ Nongkrong / Hiburan</option>
-        <option value="Lainnya">📦 Lainnya</option>
-      </select>
-
-      <button id="btnSimpan" class="btn-simpan">Simpan Catatan</button>
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="nama@email.com">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="******">
+      
+      <button id="btnAuthSubmit" class="btn-main">Masuk</button>
+      <p class="toggle-auth" id="btnToggleAuth">Belum punya akun? Daftar disini</p>
     </div>
 
-    <!-- DAFTAR RIWAYAT -->
-    <div class="section-riwayat">
-      <h3>Riwayat Transaksi</h3>
-      <div id="daftarPengeluaranContainer">
-        <p class="pesan-kosong">Belum ada transaksi dicatat.</p>
+    <!-- LAYAR APLIKASI UTAMA (HIDDEN SAAT BELUM LOGIN) -->
+    <div id="secApp" style="display: none;">
+      
+      <div class="user-header">
+        <small id="userEmailText" style="color: #666;"></small>
+        <button id="btnLogout" class="btn-small" style="background: #ff3b30;">Keluar</button>
+      </div>
+
+      <!-- KARTU SALDO UTAMA -->
+      <div class="card-saldo">
+        <div>
+          <small>Sisa Uang Saku</small>
+          <h2 id="teksSisaUang">Rp 0</h2>
+        </div>
+        <button id="btnTambahSaldo" class="btn-small" style="width: 100%; margin-bottom: 12px;">+ Tambah Saldo Masuk</button>
+        <hr>
+        <div class="detail-saldo">
+          <p>
+            Target Saku: <span id="teksUangSaku">Rp 0</span> 
+            <button id="btnEditSaku" class="btn-small">✏️</button>
+          </p>
+          <p>Total Keluar: <span id="teksTotalKeluar">Rp 0</span></p>
+        </div>
+      </div>
+
+      <!-- FORM CATAT PENGELUARAN -->
+      <div class="card-form">
+        <h3>+ Catat Pengeluaran</h3>
+        <label>Nama Pengeluaran</label>
+        <input type="text" id="inputNama" placeholder="Contoh: Nasi Goreng">
+        <label>Nominal (Rp)</label>
+        <input type="number" id="inputNominal" placeholder="Contoh: 15000">
+        <label>Kategori</label>
+        <select id="inputKategori">
+          <option value="Makan">🍛 Makan & Minum</option>
+          <option value="Kebutuhan Kos">🏠 Kebutuhan Kos</option>
+          <option value="Transport">🛵 Transportasi</option>
+          <option value="Nongkrong">☕ Nongkrong / Hiburan</option>
+          <option value="Lainnya">📦 Lainnya</option>
+        </select>
+        <button id="btnSimpan" class="btn-main btn-simpan">Simpan Catatan</button>
+      </div>
+
+      <!-- DAFTAR RIWAYAT -->
+      <div>
+        <h3>Riwayat Transaksi</h3>
+        <div id="daftarPengeluaranContainer">
+          <p class="pesan-kosong">Belum ada transaksi.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -257,212 +180,273 @@
   <div class="modal-overlay" id="modalCustom">
     <div class="modal-box">
       <h3 id="modalJudul">Judul Pop-up</h3>
-      
       <div id="modalFormContainer">
         <label id="modalLabel1">Keterangan</label>
-        <input type="text" id="modalInput1" placeholder="">
-
+        <input type="text" id="modalInput1">
         <div id="wrapperInput2">
           <label id="modalLabel2">Nominal (Rp)</label>
-          <input type="number" id="modalInput2" placeholder="">
+          <input type="number" id="modalInput2">
         </div>
       </div>
-
       <div class="modal-buttons">
-        <button class="btn-batal" id="btnModalBatal">Batal</button>
-        <button class="btn-konfirmasi" id="btnModalSimpan">Simpan</button>
+        <button class="btn-main" style="background:#8e8e93" id="btnModalBatal">Batal</button>
+        <button class="btn-main" id="btnModalSimpan">Simpan</button>
       </div>
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
-  <script>
-    let uangSakuMingguan = Number(localStorage.getItem('targetUangSakuKos')) || 300000;
-    let daftarPengeluaran = JSON.parse(localStorage.getItem('dataPengeluaranKos')) || [];
-    let modalAction = ''; // Untuk menyimpan status aksi modal yang aktif
+  <!-- FIREBASE SDK (MODULAR v9) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+      GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, doc, setDoc, getDoc, collection, addDoc, 
+      deleteDoc, onSnapshot, query, orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    // ⚠️ GANTI DENGAN CONFIGURASI FIREBASE PROJECT ANDA!
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5_nNGeHQ933qHDEu3Wp6CXpJhGp2Uwa8",
+      authDomain: "training-862a8.firebasestorage.app",
+      projectId: "training-862a8",
+      storageBucket: "training-862a8.appspot.com",
+      messagingSenderId: "355468254715",
+      appId: "1:355468254715:ios:7d329bebd9128745fe3f5e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app); 
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let uangSakuMingguan = 300000;
+    let daftarPengeluaran = [];
+    let isRegisterState = false;
+    let modalAction = '';
+
+    // Elements Auth
+    const secAuth = document.getElementById('secAuth');
+    const secApp = document.getElementById('secApp');
+    const authTitle = document.getElementById('authTitle');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const btnAuthSubmit = document.getElementById('btnAuthSubmit');
+    const btnGoogleLogin = document.getElementById('btnGoogleLogin');
+    const btnToggleAuth = document.getElementById('btnToggleAuth');
+    const btnLogout = document.getElementById('btnLogout');
+    const userEmailText = document.getElementById('userEmailText');
+
+    // App Elements
     const inputNama = document.getElementById('inputNama');
     const inputNominal = document.getElementById('inputNominal');
     const inputKategori = document.getElementById('inputKategori');
     const btnSimpan = document.getElementById('btnSimpan');
     const btnEditSaku = document.getElementById('btnEditSaku');
     const btnTambahSaldo = document.getElementById('btnTambahSaldo');
-
     const teksSisaUang = document.getElementById('teksSisaUang');
     const teksUangSaku = document.getElementById('teksUangSaku');
     const teksTotalKeluar = document.getElementById('teksTotalKeluar');
     const containerRiwayat = document.getElementById('daftarPengeluaranContainer');
 
-    // Element Modal
+    // Modal
     const modalCustom = document.getElementById('modalCustom');
     const modalJudul = document.getElementById('modalJudul');
     const modalLabel1 = document.getElementById('modalLabel1');
     const modalInput1 = document.getElementById('modalInput1');
     const wrapperInput2 = document.getElementById('wrapperInput2');
-    const modalLabel2 = document.getElementById('modalLabel2');
     const modalInput2 = document.getElementById('modalInput2');
-    const btnModalBatal = document.getElementById('btnModalBatal');
-    const btnModalSimpan = document.getElementById('btnModalSimpan');
+
+    // --- AUTHENTICATION LOGIC ---
+
+    // 1. LOGIN GOOGLE
+    btnGoogleLogin.addEventListener('click', async () => {
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (err) {
+        alert('Gagal login Google: ' + err.message);
+      }
+    });
+
+    // 2. LOGIN / REGISTER EMAIL MANUAL
+    btnToggleAuth.addEventListener('click', () => {
+      isRegisterState = !isRegisterState;
+      authTitle.innerText = isRegisterState ? 'Daftar Akun Baru' : 'Login Pengguna';
+      btnAuthSubmit.innerText = isRegisterState ? 'Daftar' : 'Masuk';
+      btnToggleAuth.innerText = isRegisterState ? 'Sudah punya akun? Login' : 'Belum punya akun? Daftar disini';
+    });
+
+    btnAuthSubmit.addEventListener('click', async () => {
+      const email = authEmail.value;
+      const password = authPassword.value;
+      if (!email || !password) return alert('Isi Email & Password!');
+
+      try {
+        if (isRegisterState) {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (err) {
+        alert('Gagal: ' + err.message);
+      }
+    });
+
+    btnLogout.addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        secAuth.style.display = 'none';
+        secApp.style.display = 'block';
+        userEmailText.innerText = user.email || user.displayName;
+        muatDataUser();
+      } else {
+        currentUser = null;
+        secAuth.style.display = 'block';
+        secApp.style.display = 'none';
+      }
+    });
+
+    // --- REALTIME DATABASE LISTENERS ---
+    function muatDataUser() {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      getDoc(userDocRef).then(snap => {
+        if (snap.exists()) {
+          uangSakuMingguan = snap.data().targetSaku || 300000;
+        } else {
+          setDoc(userDocRef, { targetSaku: 300000 });
+        }
+        perbaruiTampilan();
+      });
+
+      const q = query(collection(db, 'users', currentUser.uid, 'transaksi'), orderBy('timestamp', 'desc'));
+      onSnapshot(q, (snapshot) => {
+        daftarPengeluaran = [];
+        snapshot.forEach((doc) => {
+          daftarPengeluaran.push({ id: doc.id, ...doc.data() });
+        });
+        perbaruiTampilan();
+      });
+    }
 
     function perbaruiTampilan() {
       let totalKeluar = 0;
-      let totalPemasukanTambahan = 0;
+      let totalPemasukan = 0;
 
-      for (let i = 0; i < daftarPengeluaran.length; i++) {
-        if (daftarPengeluaran[i].tipe === 'masuk') {
-          totalPemasukanTambahan += daftarPengeluaran[i].jumlah;
-        } else {
-          totalKeluar += daftarPengeluaran[i].jumlah;
-        }
-      }
+      daftarPengeluaran.forEach(item => {
+        if (item.tipe === 'masuk') totalPemasukan += item.jumlah;
+        else totalKeluar += item.jumlah;
+      });
 
-      let sisaUang = (uangSakuMingguan + totalPemasukanTambahan) - totalKeluar;
-
+      let sisaUang = (uangSakuMingguan + totalPemasukan) - totalKeluar;
       teksSisaUang.innerText = `Rp ${sisaUang.toLocaleString('id-ID')}`;
       teksUangSaku.innerText = `Rp ${uangSakuMingguan.toLocaleString('id-ID')}`;
       teksTotalKeluar.innerText = `Rp ${totalKeluar.toLocaleString('id-ID')}`;
 
       containerRiwayat.innerHTML = '';
-
       if (daftarPengeluaran.length === 0) {
-        containerRiwayat.innerHTML = '<p class="pesan-kosong">Belum ada transaksi dicatat.</p>';
+        containerRiwayat.innerHTML = '<p class="pesan-kosong">Belum ada transaksi.</p>';
         return;
       }
 
-      for (let i = daftarPengeluaran.length - 1; i >= 0; i--) {
-        let item = daftarPengeluaran[i];
+      daftarPengeluaran.forEach(item => {
         let div = document.createElement('div');
         div.className = 'item-transaksi';
-        
         let isMasuk = item.tipe === 'masuk';
-        let tanda = isMasuk ? '+Rp ' : '-Rp ';
-        let kelasWarna = isMasuk ? 'pemasukan-text' : 'pengeluaran-text';
-
+        
         div.innerHTML = `
           <div>
             <strong>${item.nama}</strong><br>
             <small style="color: #666;">${item.kategori} • ${item.tanggal}</small>
           </div>
           <div style="display: flex; align-items: center;">
-            <span class="${kelasWarna}">${tanda}${item.jumlah.toLocaleString('id-ID')}</span>
-            <button class="btn-delete" onclick="hapusTransaksi(${item.id})">🗑️</button>
+            <span class="${isMasuk ? 'pemasukan-text' : 'pengeluaran-text'}">
+              ${isMasuk ? '+' : '-'}Rp ${item.jumlah.toLocaleString('id-ID')}
+            </span>
+            <button class="btn-delete" data-id="${item.id}">🗑️</button>
           </div>
         `;
         containerRiwayat.appendChild(div);
-      }
+      });
+
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => hapusTransaksi(e.target.getAttribute('data-id')));
+      });
     }
 
-    function tambahTransaksi() {
+    // --- ACTIONS ---
+    btnSimpan.addEventListener('click', async () => {
       let nama = inputNama.value.trim();
       let nominal = Number(inputNominal.value);
-      let kategori = inputKategori.value;
+      if (!nama || nominal <= 0) return alert('Isi data pengeluaran dengan benar!');
 
-      if (nama === '' || isNaN(nominal) || nominal <= 0) {
-        alert('Harap isi nama pengeluaran dan nominal dengan benar!');
-        return;
-      }
-
-      let transaksiBaru = {
-        id: Date.now(),
+      await addDoc(collection(db, 'users', currentUser.uid, 'transaksi'), {
         tipe: 'keluar',
         nama: nama,
         jumlah: nominal,
-        kategori: kategori,
-        tanggal: new Date().toLocaleDateString('id-ID')
-      };
-
-      daftarPengeluaran.push(transaksiBaru);
-      localStorage.setItem('dataPengeluaranKos', JSON.stringify(daftarPengeluaran));
+        kategori: inputKategori.value,
+        tanggal: new Date().toLocaleDateString('id-ID'),
+        timestamp: Date.now()
+      });
 
       inputNama.value = '';
       inputNominal.value = '';
+    });
 
-      perbaruiTampilan();
-    }
-
-    function hapusTransaksi(id) {
-      if (confirm('Yakin ingin menghapus catatan ini?')) {
-        daftarPengeluaran = daftarPengeluaran.filter(item => item.id !== id);
-        localStorage.setItem('dataPengeluaranKos', JSON.stringify(daftarPengeluaran));
-        perbaruiTampilan();
+    async function hapusTransaksi(docId) {
+      if (confirm('Hapus catatan ini?')) {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'transaksi', docId));
       }
     }
 
-    // FUNGSI UNTUK MEMBUKA MODAL KUSTOM
+    // --- MODAL SYSTEM ---
+    btnTambahSaldo.addEventListener('click', () => bukaModal('tambahSaldo'));
+    btnEditSaku.addEventListener('click', () => bukaModal('editSaku'));
+    document.getElementById('btnModalBatal').addEventListener('click', () => modalCustom.classList.remove('active'));
+
     function bukaModal(action) {
       modalAction = action;
-      modalInput1.value = '';
-      modalInput2.value = '';
-
+      modalInput1.value = ''; modalInput2.value = '';
       if (action === 'tambahSaldo') {
         modalJudul.innerText = 'Tambah Saldo Masuk';
-        modalLabel1.innerText = 'Keterangan Saldo Masuk';
-        modalInput1.placeholder = 'Contoh: Dikasih Orang Tua / Rezeki';
-        modalInput1.type = 'text';
+        modalLabel1.innerText = 'Keterangan';
         wrapperInput2.style.display = 'block';
-        modalLabel2.innerText = 'Nominal (Rp)';
-        modalInput2.placeholder = 'Contoh: 100000';
-      } else if (action === 'editSaku') {
+      } else {
         modalJudul.innerText = 'Ubah Target Uang Saku';
-        modalLabel1.innerText = 'Nominal Target Uang Saku Baru (Rp)';
-        modalInput1.placeholder = 'Contoh: 300000';
-        modalInput1.type = 'number';
+        modalLabel1.innerText = 'Nominal Target Baru (Rp)';
         modalInput1.value = uangSakuMingguan;
         wrapperInput2.style.display = 'none';
       }
-
       modalCustom.classList.add('active');
     }
 
-    function tutupModal() {
-      modalCustom.classList.remove('active');
-    }
-
-    // FUNGSI PROSES SIMPAN DARI MODAL
-    function simpanModal() {
+    document.getElementById('btnModalSimpan').addEventListener('click', async () => {
       if (modalAction === 'tambahSaldo') {
         let ket = modalInput1.value.trim();
         let nominal = Number(modalInput2.value);
+        if (!ket || nominal <= 0) return alert('Isi data dengan benar!');
 
-        if (ket === '' || isNaN(nominal) || nominal <= 0) {
-          alert('Harap isi keterangan dan nominal angka dengan benar!');
-          return;
-        }
-
-        let transaksiMasuk = {
-          id: Date.now(),
+        await addDoc(collection(db, 'users', currentUser.uid, 'transaksi'), {
           tipe: 'masuk',
           nama: ket,
           jumlah: nominal,
           kategori: '📥 Saldo Masuk',
-          tanggal: new Date().toLocaleDateString('id-ID')
-        };
-
-        daftarPengeluaran.push(transaksiMasuk);
-        localStorage.setItem('dataPengeluaranKos', JSON.stringify(daftarPengeluaran));
-        perbaruiTampilan();
-        tutupModal();
-
+          tanggal: new Date().toLocaleDateString('id-ID'),
+          timestamp: Date.now()
+        });
       } else if (modalAction === 'editSaku') {
         let nominalBaru = Number(modalInput1.value);
-        if (!isNaN(nominalBaru) && nominalBaru >= 0) {
+        if (nominalBaru >= 0) {
+          await setDoc(doc(db, 'users', currentUser.uid), { targetSaku: nominalBaru }, { merge: true });
           uangSakuMingguan = nominalBaru;
-          localStorage.setItem('targetUangSakuKos', nominalBaru);
-          perbaruiTampilan();
-          tutupModal();
-        } else {
-          alert('Nominal harus berupa angka valid!');
         }
       }
-    }
-
-    btnSimpan.addEventListener('click', tambahTransaksi);
-    btnTambahSaldo.addEventListener('click', () => bukaModal('tambahSaldo'));
-    btnEditSaku.addEventListener('click', () => bukaModal('editSaku'));
-    btnModalBatal.addEventListener('click', tutupModal);
-    btnModalSimpan.addEventListener('click', simpanModal);
-
-    perbaruiTampilan();
+      modalCustom.classList.remove('active');
+    });
   </script>
 </body>
 </html>
